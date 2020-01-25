@@ -1,0 +1,263 @@
+<html>
+<!--
+MODERN PONG!
+
+Pol-US Development
+MADE IN POLAND
+Finished: 01/2020
+
+
+2 days of work according to:
+Code Your First Game: Arcade Classic in JavaScript on Canvas
+by
+Chris DeLeon
+https://www.udemy.com/course/code-your-first-game/learn/lecture/3603404#overview
+
+Thank You so much for inspiration and explaining every single shit step by step!
+-->
+<title>MODERN PONG!</title>
+<style>
+	body {
+		background-color: gray
+	}
+</style>
+<canvas id="gameCanvas" width="1200" height="800"></canvas>
+
+<script>
+var canvas;
+var canvasContext;
+var ballType = 'circle' //'circle' OR 'rect'
+var ballSize = 15;
+var ballX = 600;
+var ballY = 50;
+var ballPosX = 7;
+var ballPosY = 5;
+const ballSlip = 0.4;
+const paddleWidth = 16;
+const paddleHeight = 100;
+var paddle1Y = 250;
+var paddle2Y = 250;
+const aiLevel = 9;
+var centerlineWidth = 8;
+var netWidth = 6;
+var Score1 = 0;
+var Score2 = 0;
+const winScore = 11;
+var WinScreen = false;
+
+function calculateMousePos(evt) {
+	var rect = canvas.getBoundingClientRect();
+	var root = document.documentElement;
+	var mouseX = evt.clientX - rect.left - root.scrollLeft;
+	var mouseY = evt.clientY - rect.top - root.scrollTop;
+	return {
+		x:mouseX,
+		y:mouseY
+	};
+}
+
+function handleMouseClick(evt) {
+	if(WinScreen) {
+		Score1 = 0;
+		Score2 = 0;
+		WinScreen = false;
+	}
+}
+window.onload = function() {	
+	console.log("Hello World! Thank you for playing MODERN PONG! by Pol-US Development. We look forward to produce even more fancy things!");
+	canvas = document.getElementById('gameCanvas');
+	canvasContext = canvas.getContext('2d');
+	var framesPerSecond = 50
+	setInterval(function() {
+		moveEverything();
+		drawEverything();
+	}, 1000/framesPerSecond);
+	canvas.addEventListener('mousedown', handleMouseClick);
+	canvas.addEventListener('mousemove',
+		function(evt) {
+			var mousePos = calculateMousePos(evt);
+			paddle1Y = mousePos.y-(paddleHeight/2)
+			//paddle2Y = mousePos.y-(paddleHeight/2)
+		})
+}
+
+function callBoth() {
+	moveEverything();
+	drawEverything();
+}
+
+function ballReset() {
+	if(Score1==winScore || Score2==winScore) {
+		WinScreen = true
+	}
+	ballPosX = -ballPosX;
+	ballPosY = -ballPosY*Math.random()
+	ballX = canvas.width/2
+	ballY = canvas.height/2
+}
+
+function computerMovement() {
+	var paddle2YCenter = paddle2Y + (paddleHeight/2)
+	if(paddle2YCenter < ballY-42) {
+		paddle2Y += aiLevel;
+	} else if(paddle2YCenter > ballY+42) {
+		paddle2Y -= aiLevel;
+	}
+}
+
+function moveEverything() {
+	if(WinScreen) {
+		return;
+	}
+	computerMovement();
+	ballX += ballPosX;
+	ballY += ballPosY;
+	if(ballType == 'rect') {
+		if(ballX > canvas.width) {
+			if(ballY > paddle2Y-5 &&
+				ballY < paddle2Y+paddleHeight+5) {
+				ballPosX = -ballPosX
+				var deltaY = ballY
+					-(paddle2Y+paddleHeight/2);
+				ballPosY = deltaY * ballSlip;
+			} else {
+				Score1++;
+				ballReset();
+			}
+		}
+		if(ballY > canvas.height-ballSize) {
+			ballPosY = -ballPosY
+		}
+		if(ballX < -ballSize) {
+			if(ballY > paddle1Y-5 &&
+				ballY < paddle1Y+paddleHeight+5) {
+				ballPosX = -ballPosX;
+				var deltaY = ballY
+					-(paddle1Y+paddleHeight/2);
+				ballPosY = deltaY * ballSlip;
+			} else {
+				Score2++;
+				ballReset();
+			}
+		}
+		if(ballY < 0) {
+			ballPosY = -ballPosY
+		}
+	}
+	if(ballType == 'circle') {
+		if(ballX > canvas.width - paddleWidth/2) {
+			if(ballY > paddle2Y-5 &&
+				ballY < paddle2Y+paddleHeight+5) {
+				ballPosX = -ballPosX
+				var deltaY = ballY
+					-(paddle2Y+paddleHeight/2);
+				ballPosY = deltaY * ballSlip;
+			} else {
+				Score1++;
+				ballReset();
+			}
+		}
+		if(ballY > canvas.height) {
+			ballPosY = -ballPosY
+		}
+		if(ballX < 0 + paddleWidth/2) {
+			if(ballY > paddle1Y-5 &&
+				ballY < paddle1Y+paddleHeight+5) {
+				ballPosX = -ballPosX;
+				var deltaY = ballY
+					-(paddle1Y+paddleHeight/2);
+				ballPosY = deltaY * ballSlip;
+			} else {
+				Score2++;
+				ballReset();
+			}
+		}
+		if(ballY < 0) {
+			ballPosY = -ballPosY
+		}
+	}
+}
+
+function drawEverything() {
+	//table
+	colorRect(0,0,canvas.width,canvas.height,'white');
+	colorRect(paddleWidth,0,canvas.width - paddleWidth*2,canvas.height,'cornflowerblue');
+	//side lines
+	colorRect(0,0,paddleWidth/2,canvas.height,'gray');
+	colorRect(canvas.width - paddleWidth/2,0,paddleWidth/2,canvas.height,'gray');
+	colorRect(paddleWidth,0,canvas.width - paddleWidth*2, paddleWidth/2,'white');
+	colorRect(paddleWidth,canvas.height - paddleWidth/2,canvas.width - paddleWidth*2,paddleWidth/2,'white');
+	/*colorRect(paddleWidth/2,0,paddleWidth/2,canvas.height,'white');
+	colorRect(canvas.width - paddleWidth,0,canvas.width - paddleWidth/2,canvas.height,'white');
+	colorRect(canvas.width - paddleWidth/2,0,canvas.width - paddleWidth/2,canvas.height,'gray');
+	colorRect(0,0,canvas.width,paddleWidth/2,canvas.height,'white');
+	colorRect(0,canvas.height - paddleWidth/2,canvas.width,paddleWidth/2,canvas.height,'white');
+	*/
+	//center line
+	colorRect(paddleWidth/2,canvas.height/2 - centerlineWidth/2,canvas.width - paddleWidth ,centerlineWidth,'white');
+	//net
+	colorRect(canvas.width/2 - netWidth/2,0,netWidth,canvas.height,'darkgreen');
+	//winscreen
+	if(WinScreen) {
+		canvasContext.fillStyle = 'black';
+		if(Score1 == winScore) {
+			canvasContext.fillStyle = 'gold';
+			canvasContext.fillText("YOU WIN!", 300,300);
+		} else {
+			canvasContext.fillStyle = 'black';
+		}
+		canvasContext.fillText(Score1, 100, 100);
+		if(Score2 == winScore) {
+			canvasContext.fillStyle = 'red';
+			canvasContext.fillText("YOU LOSE!", 300,300);
+			canvasContext.fillStyle = 'gold';
+		} else {
+			canvasContext.fillStyle = 'black';
+		}
+		canvasContext.fillText(Score2, canvas.width-100,100);
+		canvasContext.fillStyle = 'black';
+		canvasContext.fillText("Click anywhere on the table to continue!",650,700)
+		return;
+	}
+
+	//paddle1
+	colorRect(paddleWidth/2,paddle1Y,paddleWidth/2,paddleHeight,'black');
+	colorRect(0,paddle1Y,paddleWidth/2,paddleHeight,'red');
+	//paddle2
+	colorRect(canvas.width - paddleWidth,paddle2Y,paddleWidth/2,paddleHeight,'black');
+	colorRect(canvas.width - paddleWidth/2,paddle2Y,paddleWidth/2,paddleHeight,'red');
+
+	//ball
+	if(ballType == 'rect') {
+		colorRect(ballX,ballY,ballSize,ballSize,'orange');
+	}
+	if(ballType == 'circle') {
+		colorCircle(ballX,ballY,ballSize/1.5,'orange')
+	}
+	canvasContext.fillStyle = 'black';
+	canvasContext.font = "30px Comic Sans"
+	canvasContext.fillText(Score1, 100, 100);
+	canvasContext.fillText(Score2, canvas.width-100,100);
+}
+
+function colorRect(leftX,topY,width,height,drawColor) {
+	canvasContext.fillStyle = drawColor; //cornflowerblue
+	canvasContext.fillRect(leftX,topY,width,height);
+}
+
+function colorCircle(centerX, centerY, radius, drawColor) {
+	canvasContext.fillStyle = 'orange';
+	canvasContext.beginPath();
+	canvasContext.arc(centerX,centerY,radius,0, Math.PI*2,true);
+	canvasContext.fill();
+}
+
+</script>
+<br>
+<br>
+<center style="color: white">
+<b>
+Pol-US Development 01/2020
+</b>
+</center>
+</html>
