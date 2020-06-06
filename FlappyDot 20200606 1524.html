@@ -1,0 +1,255 @@
+<html>
+<!--
+FlappyDot
+
+Pol-US Development
+MADE IN POLAND
+Finished: 06/2020
+
+
+3 days of work during Covid-19 Pandemonium, but they were spreaded into like 6 because there were more interesting things to do in the meantime
+-->
+	<title>FlappyDot</title>
+	<style>
+		body
+			{
+				background-color: gray
+			}
+	</style>
+
+	<canvas id="gameCanvas" width="1200" height="800"></canvas>
+	<script>
+	var canvas;
+	var canvasContext;
+	var DotSize = 15;
+	const DotPosX = 300;
+	var DotPosY = 400;
+	const DotPosYtol = 0;
+	var DotSpdY = 5;
+	var DotJumpY = 100;
+	var InstrX = 0;
+	var	InstrY = 0;
+	var ObstWidth = 45;
+	var ObstSpdX = -3;
+	var RandomHole1 = Math.random();
+	var RandomHole2 = Math.random();
+	var RandomHole3 = Math.random();
+	var ObstHole1 = 0;
+	var ObstHole2 = 0;
+	var ObstHole3 = 0;
+	var ObstHoleRange = 0;
+	const ObstPosStart = 1200;
+	const ObstBetweenSpace = 400;
+	var ObstPos1;
+	var ObstPos2;
+	var ObstPos3;
+	var Speed = 4;
+	const ballSlip = 0.4;
+	const paddleWidth = 16;
+	const paddleHeight = 100;
+	const ObstColor = 'pink';
+	const nonObstColor = 'black';
+	var Score = 0;
+	var RealScore = 0;
+	var iter = 0;
+	var EndScreen = false;
+
+	window.onload = function() 
+		{	
+			console.log("Hello World! Thank you for playing FlappyDot by Pol-US Development. We look forward to produce even more fancy things!");
+			console.log(Speed);
+			canvas = document.getElementById('gameCanvas');
+			canvasContext = canvas.getContext('2d');
+			const framesPerSecond = 50
+			
+			SetGame();
+			setInterval(function() 
+				{
+					moveEverything();
+					drawEverything();
+				}
+			, 1000/framesPerSecond);
+
+			canvas.addEventListener("mousedown", ResetGame)
+			document.onkeypress = GoUp
+		}
+
+	function GoUp(evt)
+		{
+			if (EndScreen) {}
+			else
+				{
+					switch(evt.keyCode)
+						{
+							case 32: DotPosY -= DotJumpY;
+							break;
+						}
+				}
+		}
+
+	function SetGame()
+		{
+			InstrX = canvas.width*3/4;
+			InstrY = canvas.height/2
+			ObstPos1 = 0*ObstBetweenSpace+ObstPosStart
+			ObstPos2 = 1*ObstBetweenSpace+ObstPosStart
+			ObstPos3 = 2*ObstBetweenSpace+ObstPosStart
+			ObstHole1 = Math.random*(canvas.height*3/4)
+			ObstHole2 = Math.random*(canvas.height*3/4)
+			ObstHole3 = Math.random*(canvas.height*3/4)
+			DotPosY = canvas.height/2;
+			EndScreen = false;
+			Score = 0;
+			RealScore = 0;
+		}
+
+	function ResetGame(evt)
+		{
+			if (EndScreen)
+				{
+					SetGame();
+				}
+		}
+
+	function drawEverything()
+		{
+			//background
+			colorRect(0,0,canvas.width,canvas.height,nonObstColor);
+
+			//obst
+			ObstHole1 = RandomHole1*(canvas.height*3/4)
+			ObstHole2 = RandomHole2*(canvas.height*3/4)
+			ObstHole3 = RandomHole3*(canvas.height*3/4)
+			ObstHoleRange = canvas.height*3/16
+
+			colorRect(ObstPos1,0,ObstWidth,canvas.height,ObstColor)
+			colorRect(ObstPos1,ObstHole1,ObstWidth,ObstHoleRange,nonObstColor)
+
+			colorRect(ObstPos2,0,ObstWidth,canvas.height,ObstColor)
+			colorRect(ObstPos2,ObstHole2,ObstWidth,ObstHoleRange,nonObstColor)
+
+			colorRect(ObstPos3,0,ObstWidth,canvas.height,ObstColor)
+			colorRect(ObstPos3,ObstHole3,ObstWidth,ObstHoleRange,nonObstColor)
+
+			if (EndScreen)
+				{
+					//cały shit związany z wynikiem i resetem gry
+					colorRect(DotPosX,DotPosY,DotSize,DotSize,'red');
+					canvasContext.fillStyle = 'white';
+					canvasContext.font = '50px Arial';
+					canvasContext.fillText("Your Score: "+RealScore, canvas.width*1/2,canvas.height*20/32)
+					canvasContext.font = '25px Arial';
+					canvasContext.fillText("Press LMB to restart",canvas.width*1/2, canvas.height*22/32)
+				}
+			else
+				{
+					//dot
+					colorRect(DotPosX,DotPosY,DotSize,DotSize,'gold');
+
+					//RealScore
+					canvasContext.fillStyle = 'white';
+					canvasContext.font = "20px Arial";
+		 			canvasContext.fillText(RealScore, canvas.height*3/32, canvas.height*3/32);
+
+					//instruction
+					if (InstrX > -200)
+						{
+							canvasContext.fillStyle = 'white';
+							canvas.font = '40px Arial';
+							canvasContext.fillText("Space = Jump",InstrX,InstrY)
+						}
+				}
+		}
+
+	function moveEverything() 
+		{
+			if (EndScreen) 
+				{
+					return;
+				}
+
+			DotPosY=Math.max(0,DotPosY)
+			DotPosY=Math.min(canvas.height - DotSize, DotPosY)
+			if (DotPosY == canvas.height-DotSize) 
+				{
+					console.log("Hit the ground")
+					EndScreen=true
+				} 
+			if (DotPosX + DotSize >= ObstPos1 && DotPosX <= ObstPos1+ObstWidth)
+				{
+					if (DotPosY - DotPosYtol <= ObstHole1 || DotPosY + DotSize + DotPosYtol >= ObstHole1 + ObstHoleRange)
+						{
+							EndScreen = true
+						}
+					else
+						{
+							Score += 1
+						}
+				}
+			else if (DotPosX + DotSize >= ObstPos2 && DotPosX <= ObstPos2+ObstWidth)
+				{
+					if (DotPosY - DotPosYtol <= ObstHole2 || DotPosY + DotSize + DotPosYtol >= ObstHole2+ObstHoleRange)
+						{
+							EndScreen = true
+						}
+					else
+						{
+							Score += 1
+						}
+				}
+			else if (DotPosX + DotSize >= ObstPos3 && DotPosX <= ObstPos3+ObstWidth)
+				{
+					if (DotPosY - DotPosYtol <= ObstHole3 || DotPosY + DotSize + DotPosYtol >= ObstHole3+ObstHoleRange)
+						{
+							EndScreen = true
+						}
+					else
+						{
+							Score += 1
+						}
+				}
+			else
+				{
+					RealScore += Math.round(Score/10)/2
+					Score = 0
+				}
+			
+			DotPosY += DotSpdY
+			InstrX += ObstSpdX
+			ObstPos1 += ObstSpdX
+			ObstPos2 += ObstSpdX
+			ObstPos3 += ObstSpdX
+
+			if (ObstPos1 < -ObstWidth)
+				{
+					ObstPos1 = canvas.width
+					RandomHole1 = Math.random()
+				};
+
+			if (ObstPos2 < -ObstWidth)
+				{
+					ObstPos2 = canvas.width
+					RandomHole2 = Math.random()
+				};
+
+			if (ObstPos3 < -ObstWidth)
+				{
+					ObstPos3 = canvas.width
+					RandomHole3 = Math.random()
+				};	
+		}
+
+	function colorRect(leftX,topY,width,height,drawColor) 
+		{
+			canvasContext.fillStyle = drawColor;
+			canvasContext.fillRect(leftX,topY,width,height);
+		}
+
+	</script>
+	<br><br>
+	<center style="color: white">
+	<b>
+	Pol-US Development 06/2020
+	</b>
+	</center>
+</html>
